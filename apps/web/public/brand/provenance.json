@@ -1,0 +1,10 @@
+{
+  "brand": "NovaRace",
+  "product": "Flow",
+  "guide": "Brandguide.pdf, December 2023",
+  "assets": {
+    "novarace-white.png": "RGB logo without icons.png",
+    "novarace-colour.png": "RGB WEBSITE.png"
+  },
+  "processing": "Proportional resize and PNG optimisation of complete supplied artwork. Source colours and transparency preserved."
+}

@@ -1,0 +1,46 @@
+{
+  "name": "novarace-flow",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "build": "npm run build -w packages/shared && npm run build -w apps/api && npm run build -w apps/web",
+    "start": "npm run start -w apps/api",
+    "seed": "npm run seed -w apps/api",
+    "test": "npm run test -w apps/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "setup": "npm run build -w packages/shared && npm run setup -w apps/api && npm run seed",
+    "test:browser": "playwright test",
+    "icons": "node --import tsx scripts/icons.ts",
+    "format": "prettier --write apps packages scripts tests docs README.md *.json *.ts *.yaml",
+    "format:check": "prettier --check apps packages scripts tests docs README.md *.json *.ts *.yaml",
+    "brand:assets": "node --import tsx scripts/brand-assets.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "concurrently": "^9.1.2",
+    "pdf-lib": "^1.17.1",
+    "prettier": "^3.10.1",
+    "sharp": "^0.35.5",
+    "typescript": "^5.7.3"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    },
+    "workbox-build": {
+      "glob": "^14.0.6"
+    },
+    "@rollup/plugin-node-resolve": {
+      "deepmerge": "4.1.1"
+    }
+  }
+}

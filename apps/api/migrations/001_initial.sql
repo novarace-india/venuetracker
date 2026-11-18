@@ -1,0 +1,18 @@
+CREATE TABLE admins(id TEXT PRIMARY KEY,email TEXT NOT NULL UNIQUE,password_hash TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE sessions(token_hash TEXT PRIMARY KEY,admin_id TEXT NOT NULL REFERENCES admins(id),expires_at TEXT NOT NULL);
+CREATE TABLE events(id TEXT PRIMARY KEY,name TEXT NOT NULL,timezone TEXT NOT NULL,starts_at TEXT,email_subject TEXT NOT NULL,email_body TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE participants(id TEXT PRIMARY KEY,event_id TEXT NOT NULL REFERENCES events(id),email TEXT NOT NULL COLLATE NOCASE,full_name TEXT NOT NULL,phone TEXT NOT NULL,ticket_type TEXT NOT NULL,company TEXT NOT NULL,metadata TEXT NOT NULL DEFAULT '{}',active INTEGER NOT NULL DEFAULT 1,token_nonce TEXT NOT NULL,created_at TEXT NOT NULL,UNIQUE(event_id,email));
+CREATE TABLE gates(id TEXT PRIMARY KEY,event_id TEXT NOT NULL REFERENCES events(id),name TEXT NOT NULL,max_collections INTEGER NOT NULL CHECK(max_collections>0),created_at TEXT NOT NULL,UNIQUE(event_id,name));
+CREATE TABLE gate_dependencies(gate_id TEXT NOT NULL REFERENCES gates(id),requires_id TEXT NOT NULL REFERENCES gates(id),PRIMARY KEY(gate_id,requires_id),CHECK(gate_id<>requires_id));
+CREATE TABLE pairing_codes(code_hash TEXT PRIMARY KEY,event_id TEXT NOT NULL REFERENCES events(id),gate_id TEXT NOT NULL REFERENCES gates(id),expires_at TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE devices(id TEXT PRIMARY KEY,event_id TEXT NOT NULL REFERENCES events(id),gate_id TEXT NOT NULL REFERENCES gates(id),name TEXT NOT NULL,token_hash TEXT UNIQUE NOT NULL,revoked INTEGER NOT NULL DEFAULT 0,last_seen TEXT,created_at TEXT NOT NULL);
+CREATE TABLE scans(id TEXT PRIMARY KEY,operation_id TEXT NOT NULL UNIQUE,event_id TEXT NOT NULL REFERENCES events(id),gate_id TEXT NOT NULL REFERENCES gates(id),participant_id TEXT REFERENCES participants(id),device_id TEXT REFERENCES devices(id),actor_id TEXT,request_hash TEXT NOT NULL,status TEXT NOT NULL,message TEXT NOT NULL,manual INTEGER NOT NULL,reason TEXT,client_time TEXT,created_at TEXT NOT NULL,result_json TEXT NOT NULL);
+CREATE TABLE collections(id TEXT PRIMARY KEY,scan_id TEXT NOT NULL UNIQUE REFERENCES scans(id),participant_id TEXT NOT NULL REFERENCES participants(id),gate_id TEXT NOT NULL REFERENCES gates(id),created_at TEXT NOT NULL,undone_at TEXT,undone_by TEXT,undo_reason TEXT);
+CREATE TABLE audit_log(id TEXT PRIMARY KEY,actor_id TEXT,action TEXT NOT NULL,entity_id TEXT,detail TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE smtp_settings(id INTEGER PRIMARY KEY CHECK(id=1),host TEXT NOT NULL,port INTEGER NOT NULL,secure INTEGER NOT NULL,username TEXT NOT NULL,password_encrypted TEXT NOT NULL,from_address TEXT NOT NULL);
+CREATE TABLE email_jobs(id TEXT PRIMARY KEY,participant_id TEXT NOT NULL REFERENCES participants(id),status TEXT NOT NULL DEFAULT 'queued',attempts INTEGER NOT NULL DEFAULT 0,next_attempt_at TEXT NOT NULL,last_error TEXT,sent_at TEXT,created_at TEXT NOT NULL);
+CREATE UNIQUE INDEX email_one_pending ON email_jobs(participant_id) WHERE status IN ('queued','sending');
+CREATE INDEX participants_event ON participants(event_id);
+CREATE INDEX collections_lookup ON collections(participant_id,gate_id,undone_at);
+CREATE INDEX scans_event_time ON scans(event_id,created_at);
+CREATE INDEX email_pending ON email_jobs(status,next_attempt_at);

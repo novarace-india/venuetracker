@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+**/dist
+.git
+.env
+*.docx
+data
+test-results
+playwright-report
+.env.*
+!.env.example
+tmp
+output
+*.sqlite*
+coverage
+.DS_Store

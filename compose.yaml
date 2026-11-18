@@ -1,0 +1,18 @@
+services:
+  gatecheck:
+    build: .
+    init: true
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      DATABASE_PATH: /app/data/gatecheck.sqlite
+    ports:
+      - '127.0.0.1:3001:3001'
+    volumes:
+      - gatecheck-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  gatecheck-data:
